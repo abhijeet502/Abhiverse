@@ -270,16 +270,15 @@
     requestAnimationFrame(updateUptime);
   }
   updateUptime();
-
+  
   // -----------------------
-  // BOOT overlay (FIXED VERSION)
+  // BOOT overlay (RELIABLE FIX)
   function runBoot(){
     const boot = document.getElementById('boot');
     const bootBar = document.getElementById('boot-bar');
     const lines = document.getElementById('boot-lines');
 
     if (lines) {
-        // Only set the initial lines if the element exists
         const steps = ['Powering cores...','Syncing grids...','Warming aurora shaders...','Spawning particles...','Establishing network links...'];
         lines.innerHTML = steps.map(s=>`<div class="line">${s}</div>`).join('');
     }
@@ -288,40 +287,28 @@
     
     // Clear any previous intervals if any
     let t = setInterval(() => {
-        p += Math.floor(rand(12,18)); // Slightly bigger increments for faster progress
-        if(bootBar) bootBar.style.width = clamp(p,0,100) + '%';
+        p += rand(12,18); // Slightly bigger increments for faster progress
+        
+        // Ensure bootBar exists before setting width
+        if(bootBar) bootBar.style.width = clamp(p, 0, 100) + '%';
+
         if(p >= 100){
             clearInterval(t);
+            // Ensure boot element exists before attempting to hide
             if(boot){
                 boot.style.opacity = '0';
-                // Wait for the opacity transition (assumed 0.7s)
+                
+                // Wait for the opacity transition (assumed 0.7s in CSS) 
+                // BEFORE setting display: none, which forcibly hides it.
                 setTimeout(() => {
                     boot.style.display = 'none';
                 }, 700);
             }
         }
-    }, 300); // Slightly quicker update interval for responsiveness
+    }, 300); // Quicker update interval for responsiveness
   }
-
-  // Call runBoot immediately after DOM content is fully loaded to ensure elements exist
-  window.addEventListener('DOMContentLoaded', () => {
-      runBoot();
-  });
-
-  // Fallback timeout to force hide if something goes wrong
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      const boot = document.getElementById('boot');
-      if (boot && boot.style.display !== 'none') {
-        console.warn('Boot sequence timed out, forcing hide.');
-        boot.style.opacity = '0';
-        setTimeout(() => {
-          boot.style.display = 'none';
-        }, 700);
-      }
-    }, 3500); // 3.5 seconds after load
-  });
   // -----------------------
+
 
   // -----------------------
   // MAP (Leaflet) + Simulated Data
@@ -473,14 +460,36 @@
     simulateNewsFeed();
   }
   
-  // Wait for load to ensure Map and Data are initialized
-  window.addEventListener('load', ()=> {
+  // -----------------------
+  // TIMING CONTROL
+  // -----------------------
+  
+  // 1. Start the boot animation as soon as possible after all elements are available.
+  window.addEventListener('DOMContentLoaded', () => {
+      runBoot();
+  });
+
+  // 2. Run heavy initialization and fallbacks only when all assets are loaded.
+  window.addEventListener('load', () => {
     setupMap();
     fetchData(); 
     // Data refresh intervals
     setInterval(()=> refreshMapData(false), 12000);
     setInterval(fetchData, 8000);
+
+    // CRITICAL FALLBACK: Force-close the boot screen if it somehow hangs.
+    setTimeout(() => {
+      const boot = document.getElementById('boot');
+      if (boot && boot.style.display !== 'none') {
+        console.warn('Boot sequence timed out, forcing hide.');
+        boot.style.opacity = '0';
+        setTimeout(() => {
+          boot.style.display = 'none';
+        }, 700);
+      }
+    }, 3500); // 3.5 seconds grace period
   });
+
 
   // -----------------------
   // MANUAL & AUTO-SCROLL
