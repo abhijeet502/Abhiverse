@@ -272,52 +272,15 @@
   updateUptime();
   
   // -----------------------
-  // BOOT overlay (RELIABLE FIX)
-  function runBoot(){
-    const boot = document.getElementById('boot');
-    const bootBar = document.getElementById('boot-bar');
-    const lines = document.getElementById('boot-lines');
-
-    if (lines) {
-        const steps = ['Powering cores...','Syncing grids...','Warming aurora shaders...','Spawning particles...','Establishing network links...'];
-        lines.innerHTML = steps.map(s=>`<div class="line">${s}</div>`).join('');
-    }
-
-    let p = 0;
-    
-    // Clear any previous intervals if any
-    let t = setInterval(() => {
-        p += rand(12,18); // Slightly bigger increments for faster progress
-        
-        // Ensure bootBar exists before setting width
-        if(bootBar) bootBar.style.width = clamp(p, 0, 100) + '%';
-
-        if(p >= 100){
-            clearInterval(t);
-            // Ensure boot element exists before attempting to hide
-            if(boot){
-                boot.style.opacity = '0';
-                
-                // Wait for the opacity transition (assumed 0.7s in CSS) 
-                // BEFORE setting display: none, which forcibly hides it.
-                setTimeout(() => {
-                    boot.style.display = 'none';
-                }, 700);
-            }
-        }
-    }, 300); // Quicker update interval for responsiveness
-  }
-  // -----------------------
-
-
-  // -----------------------
   // MAP (Leaflet) + Simulated Data
   let map, markersLayer;
   const MAP_COORDS = [20,0]; // Central map view
 
   function setupMap(){
     try {
+      // NOTE: L is globally available if Leaflet script is loaded in HTML
       map = L.map('mapid', { zoomControl:false }).setView(MAP_COORDS, 2);
+      
       // Custom dark map tile layer from openstreetmap is hard, so we use a filtered standard one
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19, attribution: '', minZoom:2
@@ -461,33 +424,15 @@
   }
   
   // -----------------------
-  // TIMING CONTROL
+  // Initialization - Start everything immediately on load since boot is gone
   // -----------------------
   
-  // 1. Start the boot animation as soon as possible after all elements are available.
-  window.addEventListener('DOMContentLoaded', () => {
-      runBoot();
-  });
-
-  // 2. Run heavy initialization and fallbacks only when all assets are loaded.
   window.addEventListener('load', () => {
     setupMap();
     fetchData(); 
     // Data refresh intervals
     setInterval(()=> refreshMapData(false), 12000);
     setInterval(fetchData, 8000);
-
-    // CRITICAL FALLBACK: Force-close the boot screen if it somehow hangs.
-    setTimeout(() => {
-      const boot = document.getElementById('boot');
-      if (boot && boot.style.display !== 'none') {
-        console.warn('Boot sequence timed out, forcing hide.');
-        boot.style.opacity = '0';
-        setTimeout(() => {
-          boot.style.display = 'none';
-        }, 700);
-      }
-    }, 3500); // 3.5 seconds grace period
   });
 
 
