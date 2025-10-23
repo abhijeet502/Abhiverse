@@ -1,15 +1,14 @@
 /* AuroraVerse — app.js
    Combines:
-    - canvas aurora waves
-    - particles
-    - neural grid
+    - canvas aurora waves, particles, neural grid
     - Leaflet map with simulated live data
-    - UI interactions and auto-scroll between sections
+    - UI interactions and manual scroll to sections
+    - Real-time data from free APIs (WorldTimeAPI, Open-Meteo)
 */
 
 (() => {
   // -----------------------
-  // small helpers
+  // Core Helpers
   const rand = (a,b) => Math.random()*(b-a)+a;
   const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
   const hexToRgb = h => {
@@ -17,32 +16,35 @@
     return { r: parseInt(p.slice(0,2),16), g: parseInt(p.slice(2,4),16), b: parseInt(p.slice(4,6),16) };
   };
 
-  // theme palettes
+  // Theme palettes (for the "Inspire Me" button)
   const palettes = [
-    {a:"#ff6ec7", b:"#7c5cff", c:"#38bdf8"},
-    {a:"#ff9bb8", b:"#8e6bff", c:"#74ecf0"},
-    {a:"#ffb3d6", b:"#c08eff", c:"#9be7ff"}
+    {a:"#ff1aff", b:"#4d00ff", c:"#00ffff"}, // Default (Neon)
+    {a:"#ff9bb8", b:"#8e6bff", c:"#74ecf0"}, // Violet/Aqua
+    {a:"#6bff98", b:"#0066ff", c:"#ff0066"}  // Green/Blue/Red
   ];
   let activePal = palettes[0];
+  const root = document.documentElement.style;
   function applyPal(p){
-    document.documentElement.style.setProperty('--accentA', p.a);
-    document.documentElement.style.setProperty('--accentB', p.b);
-    document.documentElement.style.setProperty('--accentC', p.c);
+    root.setProperty('--accentA', p.a);
+    root.setProperty('--accentB', p.b);
+    root.setProperty('--accentC', p.c);
+    if(map) refreshMapData(false); // Update map colors on palette change
   }
   applyPal(activePal);
 
   // -----------------------
-  // canvases
+  // Canvas Setup
   const cAur = document.getElementById('aurora');
   const cPar = document.getElementById('particles');
   const cGrid = document.getElementById('grid');
-  const ctxA = cAur.getContext('2d');
-  const ctxP = cPar.getContext('2d');
-  const ctxG = cGrid.getContext('2d');
+  const ctxA = cAur?.getContext('2d');
+  const ctxP = cPar?.getContext('2d');
+  const ctxG = cGrid?.getContext('2d');
 
   function resize(){
     const w = innerWidth, h = innerHeight;
     [cAur,cPar,cGrid].forEach(c=>{
+      if(!c) return;
       c.width = w * devicePixelRatio;
       c.height = h * devicePixelRatio;
       c.style.width = w + 'px';
@@ -51,16 +53,17 @@
       ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
     });
   }
-  window.addEventListener('resize', ()=>{ resize(); initGrid(); });
+  window.addEventListener('resize', ()=>{ resize(); initGrid(); initParticles(); });
   resize();
 
   // -----------------------
-  // AURORA LAYERS
+  // AURORA LAYERS (Wave Effect)
   const auroraLayers = [];
   for(let i=0;i<4;i++){
     auroraLayers.push({amp:rand(40,120), speed:rand(0.002,0.01), phase:rand(0,Math.PI*2), thickness:120 - i*18});
   }
   function drawAurora(t){
+    if(!ctxA || !cAur) return;
     const w = cAur.width / devicePixelRatio;
     const h = cAur.height / devicePixelRatio;
     ctxA.clearRect(0,0,w,h);
@@ -84,12 +87,13 @@
   }
 
   // -----------------------
-  // PARTICLES
-  let PARTICLE_COUNT = Math.floor((innerWidth*innerHeight)/14000);
-  const particles = [];
+  // PARTICLES (Floating Dots)
+  let particles = [];
+  let PARTICLE_COUNT = 0;
+
   function initParticles(){
     particles.length = 0;
-    PARTICLE_COUNT = Math.max(150, Math.floor((innerWidth*innerHeight)/14000));
+    PARTICLE_COUNT = parseInt(document.getElementById('rngParticles')?.value || 900, 10);
     for(let i=0;i<PARTICLE_COUNT;i++){
       particles.push({
         x: rand(0,innerWidth),
@@ -104,15 +108,18 @@
   initParticles();
 
   function drawParticles(t){
+    if(!ctxP || !cPar) return;
     const w = cPar.width/devicePixelRatio, h = cPar.height/devicePixelRatio;
     ctxP.clearRect(0,0,w,h);
     particles.forEach(p=>{
       p.x += p.vx * (1 + Math.sin(t*0.001 + p.s));
       p.y += p.vy * (1 + Math.cos(t*0.001 + p.s));
+      // Wrap particles
       if(p.x < -30) p.x = w+30;
       if(p.x > w+30) p.x = -30;
       if(p.y < -30) p.y = h+30;
       if(p.y > h+30) p.y = -30;
+
       const grd = ctxP.createRadialGradient(p.x,p.y,0,p.x,p.y,p.s*9);
       const ca = hexToRgb(activePal.a);
       grd.addColorStop(0, `rgba(${ca.r},${ca.g},${ca.b},${0.9*p.life})`);
@@ -124,9 +131,10 @@
   }
 
   // -----------------------
-  // NEURAL GRID
+  // NEURAL GRID (Background Lines)
   let gridPoints = [];
   let GRID_COLS = 22;
+
   function initGrid(){
     gridPoints.length = 0;
     GRID_COLS = parseInt(document.getElementById('rngGrid')?.value || 22,10);
@@ -142,17 +150,19 @@
     // create sparse connections
     gridPoints.forEach((p,i)=>{
       p.conn = [];
+      const threshold = Math.max(innerWidth,innerHeight)/6;
       for(let j=0;j<gridPoints.length;j++){
         if(i===j) continue;
         const q = gridPoints[j];
         const d = Math.hypot(p.x-q.x,p.y-q.y);
-        if(d < Math.max(innerWidth,innerHeight)/6) p.conn.push(j);
+        if(d < threshold) p.conn.push(j);
       }
     });
   }
   initGrid();
 
   function drawGrid(t){
+    if(!ctxG || !cGrid) return;
     const w = cGrid.width/devicePixelRatio, h = cGrid.height/devicePixelRatio;
     ctxG.clearRect(0,0,w,h);
     gridPoints.forEach((p,i)=>{
@@ -182,7 +192,7 @@
   }
 
   // -----------------------
-  // animation loop
+  // Animation Loop
   let last = performance.now();
   function loop(now){
     const dt = now - last; last = now;
@@ -194,14 +204,15 @@
   requestAnimationFrame(loop);
 
   // -----------------------
-  // UI interactions (buttons)
+  // UI Interactions
   const btnInspire = document.getElementById('btnInspire');
   const btnPulse = document.getElementById('btnPulse');
   const btnShuffle = document.getElementById('btnShuffle');
   const rngParticles = document.getElementById('rngParticles');
   const rngGrid = document.getElementById('rngGrid');
+  const chkAuto = document.getElementById('chkAuto');
 
-  btnInspire.addEventListener('click', ()=>{
+  btnInspire?.addEventListener('click', ()=>{
     const p = palettes[Math.floor(Math.random()*palettes.length)];
     activePal = p; applyPal(p);
     auroraLayers.forEach(L=> L.amp *= 1.12);
@@ -210,7 +221,7 @@
     animateServerBars();
   });
 
-  btnPulse.addEventListener('click', ()=>{
+  btnPulse?.addEventListener('click', ()=>{
     for(let i=0;i<60;i++){
       particles.push({
         x: innerWidth*0.5 + rand(-160,160),
@@ -220,14 +231,13 @@
     }
   });
 
-  btnShuffle.addEventListener('click', ()=> {
+  btnShuffle?.addEventListener('click', ()=> {
     gridPoints.forEach(p => { p.ox += rand(-40,40); p.oy += rand(-40,40); });
   });
 
   rngParticles?.addEventListener('input', (e)=>{
-    const v = Number(e.target.value);
-    // adjust desired count smoothly
-    const desired = Math.max(120, Math.min(4000, v));
+    const desired = Number(e.target.value);
+    PARTICLE_COUNT = desired;
     while(particles.length < desired) particles.push({ x:rand(0,innerWidth), y:rand(0,innerHeight), vx:(Math.random()-0.5)*0.6, vy:(Math.random()-0.5)*0.4, s:rand(0.6,3), life:1});
     while(particles.length > desired) particles.pop();
   });
@@ -237,7 +247,7 @@
   });
 
   // -----------------------
-  // server bars & uptime
+  // Server Bars & Uptime
   const barEls = document.querySelectorAll('.bar-fill');
   function animateServerBars(){
     barEls.forEach((el)=>{
@@ -250,13 +260,13 @@
   setInterval(animateServerBars, 6000);
 
   let startTS = Date.now();
+  const feedTimeEl = document.getElementById('feedTime');
   function updateUptime(){
     const e = Date.now() - startTS;
     const hh = String(Math.floor(e/3600000)).padStart(2,'0');
     const mm = String(Math.floor((e%3600000)/60000)).padStart(2,'0');
     const ss = String(Math.floor((e%60000)/1000)).padStart(2,'0');
-    const el = document.getElementById('feedTime');
-    if(el) el.textContent = `${hh}:${mm}:${ss}`;
+    if(feedTimeEl) feedTimeEl.textContent = `${hh}:${mm}:${ss}`;
     requestAnimationFrame(updateUptime);
   }
   updateUptime();
@@ -267,42 +277,43 @@
   const bootBar = document.getElementById('boot-bar');
   function runBoot(){
     let p = 0;
-    const steps = ['Powering cores...','Syncing grids...','Warming aurora shaders...','Spawning particles...'];
+    const steps = ['Powering cores...','Syncing grids...','Warming aurora shaders...','Spawning particles...','Establishing network links...'];
     const lines = document.getElementById('boot-lines');
     lines.innerHTML = steps.map(s=>`<div class="line">${s}</div>`).join('');
     const t = setInterval(()=>{
       p += rand(8,16);
-      bootBar.style.width = clamp(p,0,100) + '%';
+      if(bootBar) bootBar.style.width = clamp(p,0,100) + '%';
       if(p >= 100){
         clearInterval(t);
-        boot.style.opacity = '0';
-        setTimeout(()=> boot.style.display = 'none', 700);
+        if(boot) boot.style.opacity = '0';
+        setTimeout(()=> { if(boot) boot.style.display = 'none'; }, 700);
       }
     }, 360);
   }
   runBoot();
 
   // -----------------------
-  // MAP (Leaflet) + simulated data
-  let map, markersLayer, heatLayer;
+  // MAP (Leaflet) + Simulated Data
+  let map, markersLayer;
+  const MAP_COORDS = [20,0]; // Central map view
+
   function setupMap(){
     try {
-      map = L.map('mapid', { zoomControl:false }).setView([20,0], 2);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19, attribution: ''
+      map = L.map('mapid', { zoomControl:false }).setView(MAP_COORDS, 2);
+      // Custom dark map tile layer from openstreetmap is hard, so we use a filtered standard one
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19, attribution: '', minZoom:2
       }).addTo(map);
 
       markersLayer = L.layerGroup().addTo(map);
-      heatLayer = null; // placeholder - can add leaflet-heat if needed
-      // initial mock feed
       refreshMapData(true);
     } catch (err) {
       console.warn('Leaflet not available or map error:', err);
-      document.getElementById('mapStatus').textContent = 'Map could not load (offline).';
+      document.getElementById('mapStatus').textContent = 'Map could not load (Leaflet error).';
     }
   }
 
-  // Simulated "live" data
+  // Simulated "live" data feeds (not API)
   function generateMockFeeds(){
     const cities = [
       {name:'London', lat:51.5074, lon:-0.1278},
@@ -311,110 +322,190 @@
       {name:'Tokyo', lat:35.6762, lon:139.6503},
       {name:'Sydney', lat:-33.8688, lon:151.2093},
       {name:'Berlin', lat:52.5200, lon:13.4050},
-      {name:'São Paulo', lat:-23.5505, lon:-46.6333}
     ];
     return cities.map(c => ({
-      title: ['Insight','Trend','Note','Alert'][Math.floor(Math.random()*4)] + ' — ' + ['AI','Design','Web','Cloud'][Math.floor(Math.random()*4)],
-      lat: c.lat + (Math.random()-0.5)*0.6,
-      lon: c.lon + (Math.random()-0.5)*0.6,
+      title: ['Insight','Trend','Note','Alert'][Math.floor(Math.random()*4)] + ' — ' + ['AI Core','Design Node','Web Cluster','Cloud Sync'][Math.floor(Math.random()*4)],
+      lat: c.lat + (Math.random()-0.5)*1.2, // increased jitter
+      lon: c.lon + (Math.random()-0.5)*1.2,
       value: Math.floor(rand(10,900))
     }));
   }
 
   function refreshMapData(init=false){
     const feed = generateMockFeeds();
-    document.getElementById('feedCount').textContent = feed.length;
-    document.getElementById('mapStatus').textContent = 'Displaying simulated live feeds';
-    document.getElementById('feedTime').textContent = new Date().toLocaleTimeString();
-    if(!map || !markersLayer){
-      return;
-    }
+    const feedCountEl = document.getElementById('feedCount');
+    if(feedCountEl) feedCountEl.textContent = feed.length;
+    
+    const mapStatusEl = document.getElementById('mapStatus');
+    if(mapStatusEl) mapStatusEl.textContent = 'Displaying simulated activity streams';
+    if(feedTimeEl) feedTimeEl.textContent = new Date().toLocaleTimeString();
+
+    if(!map || !markersLayer) return;
     markersLayer.clearLayers();
+
+    const colorA = activePal.a;
+    const colorB = activePal.b;
+
     feed.forEach(f=>{
-      const pul = L.circle([f.lat,f.lon], { radius: 30000 + f.value*200, color: activePal.a, opacity:0.5, fillOpacity:0.06 }).addTo(markersLayer);
-      const marker = L.circleMarker([f.lat, f.lon], { radius: 8, color: activePal.b, fillColor: activePal.a, fillOpacity:1, weight:1 });
-      marker.bindPopup(`<strong>${f.title}</strong><br/>value: ${f.value}`).addTo(markersLayer);
+      // Pulse Circle
+      L.circle([f.lat,f.lon], { 
+        radius: 30000 + f.value*200, 
+        color: colorA, 
+        opacity:0.3, 
+        fillOpacity:0.04, 
+        weight:1 
+      }).addTo(markersLayer);
+      
+      // Marker Dot
+      const marker = L.circleMarker([f.lat, f.lon], { 
+        radius: 6, 
+        color: colorB, 
+        fillColor: colorA, 
+        fillOpacity:1, 
+        weight:1 
+      });
+      marker.bindPopup(`<strong>${f.title}</strong><br/>Value: ${f.value}`).addTo(markersLayer);
     });
     if(!init) animateServerBars();
   }
 
-  document.getElementById('btnRefreshData').addEventListener('click', ()=> refreshMapData(false));
-  document.getElementById('btnShowHeat').addEventListener('click', ()=>{
-    // toggle simple heat-like overlay (just pulses by repainting circles)
-    const el = document.getElementById('mapStatus');
-    if(el.dataset.heat === 'on'){ el.dataset.heat = 'off'; el.textContent = 'Heat off'; refreshMapData(); return; }
-    el.dataset.heat = 'on'; el.textContent = 'Heat visual active';
-    // quick pulse effect: spawn translucent circles that grow then fade (done via markersLayer)
+  document.getElementById('btnRefreshData')?.addEventListener('click', ()=> refreshMapData(false));
+  document.getElementById('btnShowHeat')?.addEventListener('click', ()=>{
+    // Simplified pulse effect
     const pulses = generateMockFeeds();
     pulses.forEach((p,i)=>{
-      const c = L.circle([p.lat,p.lon], { radius:10000, color: activePal.b, opacity:0.18, fillOpacity:0.01 }).addTo(markersLayer);
-      setTimeout(()=> markersLayer.removeLayer(c), 2200 + i*120);
+      const c = L.circle([p.lat,p.lon], { radius:50000, color: activePal.c, opacity:0.3, fillOpacity:0.05, weight:2 }).addTo(markersLayer);
+      setTimeout(()=> markersLayer.removeLayer(c), 1800 + i*150);
     });
-  });
-
-  // init map after DOM load
-  window.addEventListener('load', ()=> {
-    setupMap();
-    // auto-refresh feed periodically
-    setInterval(()=> refreshMapData(false), 12000);
+    const btn = document.getElementById('btnShowHeat');
+    if(btn) btn.textContent = 'Pulsed! (Toggle Pulses)';
+    setTimeout(() => { if(btn) btn.textContent = 'Toggle Pulses'; }, 2000);
   });
 
   // -----------------------
-  // AUTO-SCROLL between sections
-  const sections = Array.from(document.querySelectorAll('.section'));
-  let automatic = true;
-  const chkAuto = document.getElementById('chkAuto');
-  chkAuto && chkAuto.addEventListener('change', (e)=> automatic = e.target.checked);
+  // SYSTEM FEED (Real & Simulated Data)
 
-  let currentIndex = 0;
-  const scrollInterval = 12000; // 12s per section
+  const timeDataContent = document.getElementById('time-data-content');
+  const newsDataContent = document.getElementById('news-data-content');
+  const weatherDataEl = document.getElementById('weather-data');
+
+  // API 1: World Time (Free & Public)
+  async function fetchTimeData(){
+    try {
+      const resp = await fetch('https://worldtimeapi.org/api/timezone/Europe/London');
+      const data = await resp.json();
+      if(timeDataContent){
+        timeDataContent.innerHTML = `
+          <span style="color:var(--accentA); font-size:1rem;">Europe/London Node Time</span><br/>
+          ${new Date(data.datetime).toLocaleTimeString()}
+        `;
+      }
+    } catch (error) {
+      if(timeDataContent) timeDataContent.textContent = 'ERROR: Time API offline.';
+    }
+  }
+
+  // API 2: Open-Meteo Weather (Free & Public)
+  async function fetchWeatherData(){
+     // Using coordinates for Tokyo
+    try {
+      const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.68&longitude=139.69&current_weather=true');
+      const data = await resp.json();
+      if(weatherDataEl && data.current_weather){
+        weatherDataEl.innerHTML = `
+          <span style="color:var(--accentA);">Tokyo, Japan (Lat: ${data.latitude}, Lon: ${data.longitude})</span><br/>
+          <span style="color:var(--accentC);">Current Temp:</span> ${data.current_weather.temperature}°C<br/>
+          <span style="color:var(--accentC);">Wind Speed:</span> ${data.current_weather.windspeed} km/h<br/>
+          <span style="color:var(--accentC);">Time:</span> ${data.current_weather.time.split('T')[1]}
+        `;
+      }
+    } catch (error) {
+      if(weatherDataEl) weatherDataEl.textContent = 'ERROR: Weather API offline.';
+    }
+  }
+
+  // Simulated News Feed (to avoid API keys)
+  function simulateNewsFeed(){
+    const topics = ['AI Alignment','Quantum Computing','WebGPU Standard','Global Energy Grid','Space-time Data Echo'];
+    const actions = ['New breakthrough detected','Synchronization complete','Anomaly reported','Deployment initiated','Core metrics stable'];
+    let news = '';
+    for(let i = 0; i < 5; i++) {
+      news += `<span style="color:var(--accentC)">[${String(i).padStart(2, '0')}:${new Date().toLocaleTimeString()}]</span> ${topics[Math.floor(rand(0,5))]} - ${actions[Math.floor(rand(0,5))]}<br/>`;
+    }
+    if(newsDataContent) newsDataContent.innerHTML = news;
+  }
+  
+  // Initial & Interval Data Fetch
+  function fetchData(){
+    fetchTimeData();
+    fetchWeatherData();
+    simulateNewsFeed();
+  }
+  
+  // Wait for load to ensure DOM elements exist
+  window.addEventListener('load', ()=> {
+    setupMap();
+    fetchData(); 
+    // Data refresh intervals
+    setInterval(()=> refreshMapData(false), 12000);
+    setInterval(fetchData, 8000);
+  });
+
+  // -----------------------
+  // MANUAL & AUTO-SCROLL
+  const sections = Array.from(document.querySelectorAll('.section'));
+  let automatic = chkAuto?.checked || true;
+  const scrollInterval = 12000;
   let autoTimer = null;
 
+  chkAuto?.addEventListener('change', (e)=> automatic = e.target.checked);
+
   function scrollToIndex(i){
-    if(i < 0) i = sections.length - 1;
-    if(i >= sections.length) i = 0;
-    currentIndex = i;
-    sections[i].scrollIntoView({behavior:'smooth',block:'start'});
+    let idx = i;
+    if(idx < 0) idx = sections.length - 1;
+    if(idx >= sections.length) idx = 0;
+    
+    // Smooth scroll only on the main wrapper
+    document.querySelector('.parallax-wrap').scrollTo({
+      top: sections[idx].offsetTop,
+      behavior: 'smooth'
+    });
   }
 
   function startAuto(){
     stopAuto();
+    let currentIndex = 0; // The index of the section at the top of the viewport
+    
     autoTimer = setInterval(()=>{
-      if(automatic) scrollToIndex((currentIndex+1) % sections.length);
+      if(!automatic) return;
+      // Get the current index based on scroll position
+      const scrollPos = document.querySelector('.parallax-wrap').scrollTop;
+      currentIndex = sections.findIndex(sec => sec.offsetTop > scrollPos) - 1;
+      if (currentIndex < 0) currentIndex = sections.length - 1;
+
+      scrollToIndex((currentIndex+1) % sections.length);
     }, scrollInterval);
   }
   function stopAuto(){ if(autoTimer) clearInterval(autoTimer); autoTimer = null; }
 
-  // pause auto on pointer interaction
-  ['pointerenter','mousemove','touchstart'].forEach(ev=>{
-    document.addEventListener(ev, ()=> { automatic = false; chkAuto && (chkAuto.checked = false); stopAuto(); }, {passive:true});
-  });
-  // resume with control
-  document.getElementById('btnInspire')?.addEventListener('dblclick', ()=> { automatic = true; chkAuto && (chkAuto.checked = true); startAuto(); });
-
-  // nav buttons
+  // Navigation buttons scroll using the new wrapper
   document.querySelectorAll('.nav-btn').forEach(btn=>{
     btn.addEventListener('click', ()=> {
       const id = btn.dataset.target;
       const el = document.getElementById(id);
-      if(el){ el.scrollIntoView({behavior:'smooth'}); automatic=false; chkAuto && (chkAuto.checked=false); stopAuto();}
+      if(el){ 
+        // Scroll the parallax wrapper to the section's position
+        document.querySelector('.parallax-wrap').scrollTo({
+            top: el.offsetTop,
+            behavior: 'smooth'
+        });
+        automatic=false; chkAuto && (chkAuto.checked=false); stopAuto();
+      }
     });
   });
 
   startAuto();
 
-  // -----------------------
-  // small housekeeping (trim/scale particles)
-  setInterval(()=> {
-    if(particles.length > Math.max(3000, PARTICLE_COUNT*2)) particles.splice(0, particles.length - Math.floor(PARTICLE_COUNT*1.6));
-  }, 3500);
-
-  // allow hovering to pause auto-scroll
-  document.querySelectorAll('.section').forEach(sec=>{
-    sec.addEventListener('mouseenter', ()=> { automatic = false; chkAuto && (chkAuto.checked=false); stopAuto(); });
-    sec.addEventListener('mouseleave', ()=> { if(chkAuto && chkAuto.checked) { automatic=true; startAuto(); }});
-  });
-
-  // final console
+  // Final Console Log
   console.log('AuroraVerse initialized — enjoy. Footer: Crafted with ❤️ by Abhi');
 })();
