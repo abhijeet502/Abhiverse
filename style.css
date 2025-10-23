@@ -1,0 +1,88 @@
+/* AuroraVerse — style.css
+   Single-file stylesheet for heavy visual UI
+*/
+
+:root{
+  --bg: #07060c;
+  --panel: rgba(255,255,255,0.03);
+  --muted: #9fb0c8;
+  --accentA: #ff6ec7;
+  --accentB: #7c5cff;
+  --accentC: #38bdf8;
+  --glass: rgba(255,255,255,0.04);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:var(--bg);color:#eef2f7;overflow:hidden}
+button{font-family:inherit}
+.topbar{
+  position:fixed;left:20px;right:20px;top:18px;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter:blur(8px);
+  box-shadow:0 12px 40px rgba(0,0,0,0.6)
+}
+.brand{font-weight:800;letter-spacing:0.5px;background:linear-gradient(90deg,var(--accentA),var(--accentB));-webkit-background-clip:text;color:transparent}
+.nav{display:flex;gap:8px}
+.nav-btn{background:transparent;border:none;color:var(--muted);padding:8px 10px;border-radius:8px;cursor:pointer}
+.controls{display:flex;gap:14px;align-items:center}
+.btn{background:linear-gradient(90deg,var(--accentA),var(--accentB));border:none;color:#05060a;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(124,92,255,0.12)}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:#eef2f7}
+.status{display:flex;gap:8px;align-items:center}
+.status-dot{width:10px;height:10px;border-radius:50%}
+.status-dot.running{background:linear-gradient(90deg,var(--accentC),#6fffb0)}
+.status-text{color:var(--muted);font-size:0.9rem}
+
+/* canvases: cover whole screen */
+.canvas-layer{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;display:block}
+
+/* sections layout */
+main{position:relative;z-index:10;height:100vh;overflow:hidden}
+.section{height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 28px}
+.hero-section{display:flex;align-items:center;justify-content:center}
+.hero-content{max-width:1100px;text-align:center;z-index:12}
+.title{font-size:3.2rem;margin:0 0 10px;line-height:1}
+.subtitle{color:var(--muted);margin-bottom:18px;font-size:1.05rem}
+.hero-actions{display:flex;gap:12px;justify-content:center;margin-top:8px}
+.hero-cards{display:flex;gap:12px;justify-content:center;margin-top:22px}
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:16px;border-radius:12px;min-width:220px;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+.card h4{margin:0 0 6px}
+.card p{color:var(--muted);font-size:0.95rem}
+
+/* map */
+.map-section{position:relative;padding:0}
+.map-wrapper{position:relative;display:flex;width:100%;height:100vh}
+.mapid{flex:1;height:100vh;z-index:6}
+.map-overlay{position:absolute;left:28px;top:100px;width:320px;padding:16px;border-radius:12px;background:var(--panel);backdrop-filter:blur(10px);z-index:30}
+.map-overlay h3{margin:0 0 8px}
+.map-controls{display:flex;gap:8px;margin:10px 0}
+.map-stats{color:var(--muted);font-size:0.92rem;margin-top:8px}
+
+/* studio */
+.studio-section{display:flex;align-items:center;justify-content:center}
+.ui-panel{background:var(--panel);padding:20px;border-radius:12px;backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(0,0,0,0.5)}
+.controls-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px;text-align:left}
+.controls-grid label{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted)}
+.server-bars{margin-top:16px;display:flex;gap:12px;flex-direction:column}
+.server .label{color:var(--muted);font-size:0.85rem;margin-bottom:6px}
+.bar{height:12px;background:rgba(255,255,255,0.03);border-radius:8px;overflow:hidden}
+.bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accentB),var(--accentA));transition:width 900ms cubic-bezier(.2,.9,.3,1)}
+
+/* footer */
+.footer{position:fixed;right:18px;bottom:18px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.02);backdrop-filter:blur(6px);font-weight:600;color:var(--muted);z-index:60}
+
+/* boot overlay */
+.boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(4,6,12,0.95), rgba(8,8,20,0.9));z-index:120;transition:opacity 700ms ease}
+.boot-inner{max-width:680px;padding:36px;border-radius:14px;text-align:center;border:1px solid rgba(255,255,255,0.03)}
+.boot-logo{font-weight:900;letter-spacing:2px;font-size:1.5rem;margin-bottom:14px;color:#fff}
+.boot-lines{color:var(--muted);text-align:left;margin:8px 0}
+.boot-progress{height:8px;background:rgba(255,255,255,0.03);border-radius:8px;margin-top:18px;overflow:hidden}
+.boot-bar{height:100%;width:0;background:linear-gradient(90deg,var(--accentA),var(--accentB));transition:width 600ms linear}
+
+/* responsive */
+@media (max-width:960px){
+  .map-overlay{left:12px;top:80px;width:88%}
+  .topbar{left:8px;right:8px}
+  .hero-cards{flex-direction:column;align-items:center}
+  .card{min-width:unset;width:90%}
+}
+
+/* small helper visual */
+.glow { filter:drop-shadow(0 8px 40px rgba(124,92,255,0.14)); }
