@@ -279,17 +279,25 @@
     let p = 0;
     const steps = ['Powering cores...','Syncing grids...','Warming aurora shaders...','Spawning particles...','Establishing network links...'];
     const lines = document.getElementById('boot-lines');
-    lines.innerHTML = steps.map(s=>`<div class="line">${s}</div>`).join('');
+    
+    // FIX: Ensure 'lines' element exists
+    if (lines) {
+        lines.innerHTML = steps.map(s=>`<div class="line">${s}</div>`).join('');
+    }
+    
     const t = setInterval(()=>{
       p += rand(8,16);
+      // FIX: Check bootBar before setting width
       if(bootBar) bootBar.style.width = clamp(p,0,100) + '%';
       if(p >= 100){
         clearInterval(t);
+        // FIX: Check boot before manipulating style
         if(boot) boot.style.opacity = '0';
         setTimeout(()=> { if(boot) boot.style.display = 'none'; }, 700);
       }
     }, 360);
   }
+  // Call runBoot() immediately so the loading process starts
   runBoot();
 
   // -----------------------
@@ -449,6 +457,15 @@
     // Data refresh intervals
     setInterval(()=> refreshMapData(false), 12000);
     setInterval(fetchData, 8000);
+    
+    // FIX: Fallback timer to force-close the boot screen if the progress bar hangs
+    setTimeout(() => {
+        if (boot && boot.style.display !== 'none') {
+            console.warn('Boot sequence timed out, forcing display: none.');
+            boot.style.opacity = '0';
+            setTimeout(() => { boot.style.display = 'none'; }, 700);
+        }
+    }, 3000); // 3 seconds grace period
   });
 
   // -----------------------
