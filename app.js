@@ -272,33 +272,56 @@
   updateUptime();
 
   // -----------------------
-  // BOOT overlay
-  const boot = document.getElementById('boot');
-  const bootBar = document.getElementById('boot-bar');
+  // BOOT overlay (FIXED VERSION)
   function runBoot(){
-    let p = 0;
-    const steps = ['Powering cores...','Syncing grids...','Warming aurora shaders...','Spawning particles...','Establishing network links...'];
+    const boot = document.getElementById('boot');
+    const bootBar = document.getElementById('boot-bar');
     const lines = document.getElementById('boot-lines');
-    
-    // FIX: Ensure 'lines' element exists
+
     if (lines) {
+        // Only set the initial lines if the element exists
+        const steps = ['Powering cores...','Syncing grids...','Warming aurora shaders...','Spawning particles...','Establishing network links...'];
         lines.innerHTML = steps.map(s=>`<div class="line">${s}</div>`).join('');
     }
+
+    let p = 0;
     
-    const t = setInterval(()=>{
-      p += rand(8,16);
-      // FIX: Check bootBar before setting width
-      if(bootBar) bootBar.style.width = clamp(p,0,100) + '%';
-      if(p >= 100){
-        clearInterval(t);
-        // FIX: Check boot before manipulating style
-        if(boot) boot.style.opacity = '0';
-        setTimeout(()=> { if(boot) boot.style.display = 'none'; }, 700);
-      }
-    }, 360);
+    // Clear any previous intervals if any
+    let t = setInterval(() => {
+        p += Math.floor(rand(12,18)); // Slightly bigger increments for faster progress
+        if(bootBar) bootBar.style.width = clamp(p,0,100) + '%';
+        if(p >= 100){
+            clearInterval(t);
+            if(boot){
+                boot.style.opacity = '0';
+                // Wait for the opacity transition (assumed 0.7s)
+                setTimeout(() => {
+                    boot.style.display = 'none';
+                }, 700);
+            }
+        }
+    }, 300); // Slightly quicker update interval for responsiveness
   }
-  // Call runBoot() immediately so the loading process starts
-  runBoot();
+
+  // Call runBoot immediately after DOM content is fully loaded to ensure elements exist
+  window.addEventListener('DOMContentLoaded', () => {
+      runBoot();
+  });
+
+  // Fallback timeout to force hide if something goes wrong
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const boot = document.getElementById('boot');
+      if (boot && boot.style.display !== 'none') {
+        console.warn('Boot sequence timed out, forcing hide.');
+        boot.style.opacity = '0';
+        setTimeout(() => {
+          boot.style.display = 'none';
+        }, 700);
+      }
+    }, 3500); // 3.5 seconds after load
+  });
+  // -----------------------
 
   // -----------------------
   // MAP (Leaflet) + Simulated Data
@@ -450,22 +473,13 @@
     simulateNewsFeed();
   }
   
-  // Wait for load to ensure DOM elements exist
+  // Wait for load to ensure Map and Data are initialized
   window.addEventListener('load', ()=> {
     setupMap();
     fetchData(); 
     // Data refresh intervals
     setInterval(()=> refreshMapData(false), 12000);
     setInterval(fetchData, 8000);
-    
-    // FIX: Fallback timer to force-close the boot screen if the progress bar hangs
-    setTimeout(() => {
-        if (boot && boot.style.display !== 'none') {
-            console.warn('Boot sequence timed out, forcing display: none.');
-            boot.style.opacity = '0';
-            setTimeout(() => { boot.style.display = 'none'; }, 700);
-        }
-    }, 3000); // 3 seconds grace period
   });
 
   // -----------------------
