@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AuroraVerse — by Abhi</title>
+
+  <!-- Leaflet (map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+o8H3Rr3g1k6d0Y9E6VZq8r9sZ0KkQ2JH08qvM1wY=" crossorigin=""/>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- BOOT / LOADER -->
+  <div id="boot" class="boot">
+    <div class="boot-inner">
+      <div class="boot-logo">AURORA<span class="dot">•</span>VERSE</div>
+      <div id="boot-lines" class="boot-lines">
+        <div class="line">Powering creative cores...</div>
+        <div class="line">Bridging visual studio & global data...</div>
+        <div class="line">Warming aurora engines...</div>
+      </div>
+      <div class="boot-progress"><div id="boot-bar" class="boot-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand">AuroraVerse</div>
+    <nav class="nav">
+      <button class="nav-btn" data-target="home">Home</button>
+      <button class="nav-btn" data-target="map">World</button>
+      <button class="nav-btn" data-target="studio">Studio</button>
+    </nav>
+    <div class="controls">
+      <button id="btnInspire" class="btn">✨ Inspire Me</button>
+      <div class="status">
+        <span class="status-dot running"></span>
+        <span class="status-text">Live • Nodes online</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Layers (canvases) -->
+  <canvas id="aurora" class="canvas-layer"></canvas>
+  <canvas id="particles" class="canvas-layer"></canvas>
+  <canvas id="grid" class="canvas-layer"></canvas>
+
+  <!-- Sections -->
+  <main id="main">
+    <!-- HOME / HERO (Aurora Studio) -->
+    <section id="home" class="section hero-section">
+      <div class="hero-content">
+        <h1 class="title">AuroraVerse</h1>
+        <p class="subtitle">A living creative studio fused with global data — interactive, cinematic, and powerful.</p>
+
+        <div class="hero-actions">
+          <button id="btnPulse" class="btn ghost">Pulse Now</button>
+          <button id="btnShuffle" class="btn ghost">Shuffle Grid</button>
+        </div>
+
+        <div class="hero-cards">
+          <div class="card"><h4>Neural Core</h4><p>Animated neural grid connecting visual nodes.</p></div>
+          <div class="card"><h4>Particle Fleet</h4><p>Adaptive glowing particles tuned for performance.</p></div>
+          <div class="card"><h4>Global Echo</h4><p>Realtime-like world data integrated with map overlays.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAP / ECHOVERSE -->
+    <section id="map" class="section map-section">
+      <div class="map-wrapper">
+        <div id="mapid" class="mapid"></div>
+        <div class="map-overlay ui-panel">
+          <h3>EchoVerse — Live visualizer</h3>
+          <p id="mapStatus">Using simulated data (offline-safe)</p>
+          <div class="map-controls">
+            <button id="btnRefreshData" class="btn ghost">Refresh Data</button>
+            <button id="btnShowHeat" class="btn ghost">Toggle Heat</button>
+          </div>
+          <div class="map-stats">
+            <div>Active feeds: <strong id="feedCount">—</strong></div>
+            <div>Last update: <strong id="feedTime">—</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STUDIO DETAILS -->
+    <section id="studio" class="section studio-section">
+      <div class="studio-panel ui-panel">
+        <h2>Studio Control</h2>
+        <p>Adjust effects, inspect nodes, or jump back to the map.</p>
+
+        <div class="controls-grid">
+          <label>Particles: <input id="rngParticles" type="range" min="100" max="4000" value="900"></label>
+          <label>Grid density: <input id="rngGrid" type="range" min="8" max="36" value="22"></label>
+          <label>Auto-scroll: <input id="chkAuto" type="checkbox" checked></label>
+        </div>
+
+        <div class="server-bars">
+          <div class="server"><div class="label">Compute</div><div class="bar"><div class="bar-fill" data-load="0"></div></div></div>
+          <div class="server"><div class="label">Neural Grid</div><div class="bar"><div class="bar-fill" data-load="0"></div></div></div>
+          <div class="server"><div class="label">Render</div><div class="bar"><div class="bar-fill" data-load="0"></div></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">Crafted with ❤️ by Abhi</footer>
+
+  <!-- Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-9Q+3b3Jk7f1ZbR6zq0b6k9zZ0Jb+q4p3yJ2s1F0m0gY="
+    crossorigin=""></script>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
