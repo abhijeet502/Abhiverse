@@ -1,42 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EchoVerse Aurora 🌌</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EchoVerse Aurora System | Abhi</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="boot-screen">
-    <div class="boot-text">⚡ Initializing EchoVerse Aurora System...</div>
+  <!-- Boot Screen -->
+  <div id="boot">
+    <div class="boot-text">⚡ Initializing <span>EchoVerse Aurora System...</span></div>
   </div>
 
-  <header>
-    <h1>🌍 EchoVerse Aurora</h1>
-    <p class="subtitle">A living digital world powered by time, data & light</p>
-  </header>
+  <!-- Main App -->
+  <div id="app" style="display:none;">
+    <header>
+      <h1>🌍 EchoVerse Aurora System</h1>
+      <p>Simulated Global Data Visualization | Powered by Abhi</p>
+    </header>
 
-  <section class="aurora"></section>
+    <section class="data-section">
+      <h2>Live System Feed</h2>
+      <div id="feed"></div>
+    </section>
 
-  <main>
-    <div class="content">
-      <div class="clock-card">
-        <h2>🕓 Local Time</h2>
-        <p id="time"></p>
-      </div>
-
-      <div class="news-card">
-        <h2>📰 Tech Headlines</h2>
-        <ul id="news"></ul>
-      </div>
-
+    <section class="map-section">
+      <h2>World Overview</h2>
       <div id="map"></div>
-    </div>
-  </main>
+    </section>
 
-  <footer>Crafted with ❤️ by Abhi</footer>
+    <footer>© 2025 Crafted with ❤️ by Abhi</footer>
+  </div>
+
+  <canvas id="aurora"></canvas>
 
   <script src="script.js"></script>
 </body>
