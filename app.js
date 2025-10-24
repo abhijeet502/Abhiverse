@@ -1,79 +1,74 @@
-// Boot Animation
-window.addEventListener("load", () => {
-  const boot = document.getElementById("boot-screen");
+// Boot logic
+window.addEventListener('load', () => {
+  const boot = document.querySelector('#boot');
+  boot.classList.add('fade-out');
   setTimeout(() => {
-    boot.style.opacity = "0";
-    setTimeout(() => boot.remove(), 1000);
-  }, 3500);
+    boot.style.display = 'none';
+    document.querySelector('#app').style.display = 'block';
+    initApp();
+  }, 2000);
 });
 
-// Clock
-function updateTime() {
-  const time = new Date().toLocaleTimeString();
-  document.getElementById("time").textContent = time;
-}
-setInterval(updateTime, 1000);
-updateTime();
+// Simulated data feed
+const feedLines = [
+  "[INFO] Connecting to Aurora Core...",
+  "[DATA] Fetching global metrics...",
+  "[SYNC] Timezones aligned successfully.",
+  "[STREAM] Loading latest tech trends...",
+  "[SERVER] AbhiCloud-Node active.",
+  "[STATUS] Systems operational ✅",
+  "[UPDATE] No billing required 💸",
+  "[AI] Generating future predictions...",
+  "[INFO] Mission status: Green 🌍"
+];
 
-// News Headlines (RSS feed — no API key)
-async function loadNews() {
-  const proxy = "https://api.allorigins.win/get?url=";
-  const url = encodeURIComponent("https://feeds.arstechnica.com/arstechnica/index");
-  const res = await fetch(proxy + url);
-  const data = await res.json();
-  const parser = new DOMParser();
-  const xml = parser.parseFromString(data.contents, "text/xml");
-  const items = xml.querySelectorAll("item");
-  const list = document.getElementById("news");
-  list.innerHTML = "";
-  items.forEach((item, i) => {
-    if (i < 6) {
-      const li = document.createElement("li");
-      li.innerHTML = `<a href="${item.querySelector("link").textContent}" target="_blank">${item.querySelector("title").textContent}</a>`;
-      list.appendChild(li);
+function initApp() {
+  const feed = document.getElementById('feed');
+  let index = 0;
+  const interval = setInterval(() => {
+    if (index < feedLines.length) {
+      const line = document.createElement('div');
+      line.textContent = feedLines[index];
+      feed.appendChild(line);
+      feed.scrollTop = feed.scrollHeight;
+      index++;
+    } else {
+      clearInterval(interval);
     }
-  });
+  }, 900);
+  startAurora();
 }
-loadNews();
 
-// Map (Leaflet)
-const map = L.map('map').setView([20, 0], 2);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 4,
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+// Aurora canvas background
+function startAurora() {
+  const canvas = document.getElementById("aurora");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-// Animated glowing particles
-const canvas = document.createElement("canvas");
-document.body.appendChild(canvas);
-const ctx = canvas.getContext("2d");
-canvas.style.position = "fixed";
-canvas.style.top = 0;
-canvas.style.left = 0;
-canvas.style.zIndex = 1;
-canvas.width = innerWidth;
-canvas.height = innerHeight;
+  const particles = [];
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.8 + 0.2,
+      color: `hsla(${Math.random() * 60 + 180}, 90%, 65%, 0.25)`
+    });
+  }
 
-const orbs = Array.from({ length: 40 }, () => ({
-  x: Math.random() * canvas.width,
-  y: Math.random() * canvas.height,
-  r: Math.random() * 3 + 1,
-  dx: (Math.random() - 0.5) * 0.6,
-  dy: (Math.random() - 0.5) * 0.6
-}));
-
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  orbs.forEach(o => {
-    ctx.beginPath();
-    ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(0,255,255,${Math.random() * 0.7})`;
-    ctx.fill();
-    o.x += o.dx;
-    o.y += o.dy;
-    if (o.x < 0 || o.x > canvas.width) o.dx *= -1;
-    if (o.y < 0 || o.y > canvas.height) o.dy *= -1;
-  });
-  requestAnimationFrame(animate);
+  function animate() {
+    ctx.fillStyle = "rgba(15,23,42,0.2)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (const p of particles) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      p.y -= 0.3;
+      p.x += Math.sin(p.y / 40) * 0.6;
+      if (p.y < -5) p.y = canvas.height + 5;
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
 }
-animate();
