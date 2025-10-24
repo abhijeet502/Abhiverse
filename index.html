@@ -1,134 +1,43 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AuroraVerse — Live Data Hub</title>
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-sA+o8H3Rr3g1k6d0Y9E6VZq8r9sZ0KkQ2JH08qvM1wY=" crossorigin=""/>
-
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EchoVerse Aurora 🌌</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
 </head>
 <body>
-
-  <div id="boot" class="boot">
-    <div class="boot-inner">
-      <div class="boot-logo">AURORA<span class="dot">•</span>VERSE</div>
-      <div id="boot-lines" class="boot-lines">
-        <div class="line">Powering creative cores...</div>
-      </div>
-      <div class="boot-progress"><div id="boot-bar" class="boot-bar"></div></div>
-    </div>
+  <div id="boot-screen">
+    <div class="boot-text">⚡ Initializing EchoVerse Aurora System...</div>
   </div>
 
-  <div class="parallax-wrap">
-    <header class="topbar">
-      <div class="brand">AuroraVerse</div>
-      <nav class="nav">
-        <button class="nav-btn" data-target="home">Home</button>
-        <button class="nav-btn" data-target="map">EchoVerse</button>
-        <button class="nav-btn" data-target="feed">System Feed</button>
-        <button class="nav-btn" data-target="studio">Studio</button>
-      </nav>
-      <div class="controls">
-        <button id="btnInspire" class="btn">✨ Inspire Me</button>
-        <div class="status">
-          <span class="status-dot running"></span>
-          <span class="status-text">Live • Nodes online</span>
-        </div>
+  <header>
+    <h1>🌍 EchoVerse Aurora</h1>
+    <p class="subtitle">A living digital world powered by time, data & light</p>
+  </header>
+
+  <section class="aurora"></section>
+
+  <main>
+    <div class="content">
+      <div class="clock-card">
+        <h2>🕓 Local Time</h2>
+        <p id="time"></p>
       </div>
-    </header>
 
-    <canvas id="aurora" class="canvas-layer"></canvas>
-    <canvas id="particles" class="canvas-layer"></canvas>
-    <canvas id="grid" class="canvas-layer"></canvas>
+      <div class="news-card">
+        <h2>📰 Tech Headlines</h2>
+        <ul id="news"></ul>
+      </div>
 
-    <main id="main">
-      <section id="home" class="section hero-section" data-depth="2">
-        <div class="hero-content">
-          <h1 class="title glow">AuroraVerse</h1>
-          <p class="subtitle">A living creative studio fused with global data — interactive, cinematic, and powerful.</p>
+      <div id="map"></div>
+    </div>
+  </main>
 
-          <div class="hero-actions">
-            <button id="btnPulse" class="btn ghost">Pulse Now</button>
-            <button id="btnShuffle" class="btn ghost">Shuffle Grid</button>
-          </div>
+  <footer>Crafted with ❤️ by Abhi</footer>
 
-          <div class="hero-cards">
-            <div class="card"><h4>Neural Core</h4><p>Animated neural grid connecting visual nodes.</p></div>
-            <div class="card"><h4>Particle Fleet</h4><p>Adaptive glowing particles tuned for performance.</p></div>
-            <div class="card"><h4>Global Echo</h4><p>Realtime-like world data integrated with map overlays.</p></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="map" class="section map-section" data-depth="4">
-        <div class="map-wrapper">
-          <div id="mapid" class="mapid"></div>
-          <div class="map-overlay ui-panel">
-            <h3>EchoVerse — Live Global Visualizer</h3>
-            <p id="mapStatus">Using simulated activity streams (offline-safe)</p>
-            <div class="map-controls">
-              <button id="btnRefreshData" class="btn ghost">Refresh Data</button>
-              <button id="btnShowHeat" class="btn ghost">Toggle Pulses</button>
-            </div>
-            <div class="map-stats">
-              <div>Active feeds: <strong id="feedCount">—</strong></div>
-              <div>Last update: <strong id="feedTime">—</strong></div>
-            </div>
-          </div>
-          <div id="weather-panel" class="weather-panel ui-panel">
-            <h4>Global Weather Data</h4>
-            <div id="weather-data">Loading weather...</div>
-          </div>
-        </div>
-      </section>
-      
-      <section id="feed" class="section feed-section" data-depth="3">
-        <div class="feed-panel ui-panel">
-          <h2>System Feed — Realtime Data</h2>
-          <p>Fetching public data from global nodes: Time & Weather.</p>
-          <div class="feed-data-wrap">
-            <div id="time-data" class="terminal-box">
-              <span class="terminal-line">NODE: TIMEZONE_API</span>
-              <span class="terminal-line status-dot running"></span>
-              <span id="time-data-content" class="terminal-line">Awaiting data...</span>
-            </div>
-            <div id="news-data" class="terminal-box">
-              <span class="terminal-line">NODE: NEWS_SIMULATOR</span>
-              <span class="terminal-line status-dot running"></span>
-              <div id="news-data-content" class="terminal-line news-content">Awaiting simulated news...</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="studio" class="section studio-section" data-depth="2">
-        <div class="studio-panel ui-panel">
-          <h2>Studio Control</h2>
-          <p>Adjust effects, inspect nodes, or jump back to the map.</p>
-
-          <div class="controls-grid">
-            <label>Particles: <input id="rngParticles" type="range" min="100" max="4000" value="900"></label>
-            <label>Grid density: <input id="rngGrid" type="range" min="8" max="36" value="22"></label>
-            <label>Auto-scroll: <input id="chkAuto" type="checkbox" checked></label>
-          </div>
-
-          <div class="server-bars">
-            <div class="server"><div class="label">Compute</div><div class="bar"><div class="bar-fill" data-load="0"></div></div></div>
-            <div class="server"><div class="label">Neural Grid</div><div class="bar"><div class="bar-fill" data-load="0"></div></div></div>
-            <div class="server"><div class="label">Render</div><div class="bar"><div class="bar-fill" data-load="0"></div></div></div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">Crafted with ❤️ by Abhi</footer>
-  </div> <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-9Q+3b3Jk7f1ZbR6zq0b6k9zZ0Jb+q4p3yJ2s1F0m0gY="
-    crossorigin=""></script>
-
-  <script src="app.js" defer></script>
+  <script src="script.js"></script>
 </body>
 </html>
