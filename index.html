@@ -1,39 +1,372 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EchoVerse Aurora System | Abhi</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Something's Coming...</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background: #080808;
+            color: #ffffff;
+            font-family: Arial, Helvetica, sans-serif;
+
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 25px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            text-align: center;
+        }
+
+        
+
+        .top-text {
+            color: #bdbdbd;
+            font-size: 16px;
+            line-height: 1.7;
+
+            margin-bottom: 30px;
+        }
+
+        /* DATE */
+
+        .date {
+            color: #666666;
+            font-size: 12px;
+
+            letter-spacing: 3px;
+            text-transform: uppercase;
+
+            margin-bottom: 20px;
+        }
+
+        /* TIMER */
+
+        .timer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+
+            margin-bottom: 40px;
+        }
+
+        .box {
+            width: 90px;
+
+            background: #111111;
+
+            border: 1px solid #292929;
+
+            border-radius: 14px;
+
+            padding: 18px 10px;
+        }
+
+        .number {
+            display: block;
+
+            color: #ffffff;
+
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .label {
+            display: block;
+
+            color: #666666;
+
+            font-size: 9px;
+
+            letter-spacing: 2px;
+
+            margin-top: 7px;
+
+            text-transform: uppercase;
+        }
+
+        /* SECOND TEXT */
+
+        .bottom-text {
+            color: #777777;
+
+            font-size: 15px;
+
+            line-height: 1.8;
+
+            margin-bottom: 60px;
+        }
+
+        .bottom-text .main {
+            color: #aaaaaa;
+        }
+
+        /* FOOTER */
+
+        footer {
+            color: #444444;
+
+            font-size: 11px;
+
+            letter-spacing: 1px;
+        }
+
+        footer span {
+            color: #666666;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 480px) {
+
+            body {
+                padding: 20px;
+            }
+
+            .top-text {
+                font-size: 14px;
+            }
+
+            .date {
+                font-size: 10px;
+                letter-spacing: 2px;
+            }
+
+            .box {
+                width: 72px;
+                padding: 15px 7px;
+            }
+
+            .number {
+                font-size: 24px;
+            }
+
+            .label {
+                font-size: 8px;
+            }
+
+            .bottom-text {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
+
+
 <body>
-  <!-- Boot Screen -->
-  <div id="boot">
-    <div class="boot-text">⚡ Initializing <span>EchoVerse Aurora System...</span></div>
-  </div>
 
-  <!-- Main App -->
-  <div id="app" style="display:none;">
-    <header>
-      <h1>🌍 EchoVerse Aurora System</h1>
-      <p>Simulated Global Data Visualization | Powered by Abhi</p>
-    </header>
+    <div class="container">
 
-    <section class="data-section">
-      <h2>Live System Feed</h2>
-      <div id="feed"></div>
-    </section>
+        <!-- TOP CAPTION -->
 
-    <section class="map-section">
-      <h2>World Overview</h2>
-      <div id="map"></div>
-    </section>
+        <div class="top-text">
+            Umm, wanna build something cool with me??
+            <br>
+            Coming again with more and better collaborations and teamwork.
+        </div>
 
-    <footer>© 2025 Crafted with ❤️ by Abhi</footer>
-  </div>
 
-  <canvas id="aurora"></canvas>
+        <!-- EVENT DATE -->
 
-  <script src="script.js"></script>
+        <div class="date">
+            30th August — 1st September
+        </div>
+
+
+        <!-- COUNTDOWN -->
+
+        <div class="timer">
+
+            <div class="box">
+                <span class="number" id="days">00</span>
+                <span class="label">Days</span>
+            </div>
+
+            <div class="box">
+                <span class="number" id="hours">00</span>
+                <span class="label">Hours</span>
+            </div>
+
+            <div class="box">
+                <span class="number" id="minutes">00</span>
+                <span class="label">Minutes</span>
+            </div>
+
+            <div class="box">
+                <span class="number" id="seconds">00</span>
+                <span class="label">Seconds</span>
+            </div>
+
+        </div>
+
+
+        <!-- BOTTOM MESSAGE -->
+
+        <div class="bottom-text">
+
+            <span class="main">
+                Some things will never change, huhhhh?
+            </span>
+
+            <br>
+
+            Long-awaited loner era. 🥀💔
+            ---- Not confirmed — if all goes well 30th it is.
+Otherwise… maybe December. Who knows----
+            vibe coding se ghr na chlta 💔
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <footer>
+            crafted with hate by
+            <span>........!!umm</span>
+        </footer>
+
+    </div>
+
+
+    <script>
+
+        /*
+         * COUNTDOWN
+         *
+         * Target:
+         * September 1, 2026 — 12:00 AM
+         */
+
+        var target = new Date(2026, 8, 1, 0, 0, 0).getTime();
+
+
+        function countdown() {
+
+            var now = new Date().getTime();
+
+            var remaining = target - now;
+
+
+            /*
+             * If countdown has finished
+             */
+
+            if (remaining <= 0) {
+
+                document.getElementById("days").innerHTML = "00";
+
+                document.getElementById("hours").innerHTML = "00";
+
+                document.getElementById("minutes").innerHTML = "00";
+
+                document.getElementById("seconds").innerHTML = "00";
+
+                return;
+            }
+
+
+            /*
+             * Calculate days
+             */
+
+            var days = Math.floor(
+                remaining / (1000 * 60 * 60 * 24)
+            );
+
+
+            /*
+             * Calculate hours
+             */
+
+            var hours = Math.floor(
+                (remaining / (1000 * 60 * 60)) % 24
+            );
+
+
+            /*
+             * Calculate minutes
+             */
+
+            var minutes = Math.floor(
+                (remaining / (1000 * 60)) % 60
+            );
+
+
+            /*
+             * Calculate seconds
+             */
+
+            var seconds = Math.floor(
+                (remaining / 1000) % 60
+            );
+
+
+            /*
+             * Add leading zero
+             */
+
+            days = String(days).padStart(2, "0");
+
+            hours = String(hours).padStart(2, "0");
+
+            minutes = String(minutes).padStart(2, "0");
+
+            seconds = String(seconds).padStart(2, "0");
+
+
+            /*
+             * Put numbers on screen
+             */
+
+            document.getElementById("days").innerHTML = days;
+
+            document.getElementById("hours").innerHTML = hours;
+
+            document.getElementById("minutes").innerHTML = minutes;
+
+            document.getElementById("seconds").innerHTML = seconds;
+
+        }
+
+
+        /*
+         * Start immediately
+         */
+
+        countdown();
+
+
+        /*
+         * Update every second
+         */
+
+        setInterval(countdown, 1000);
+
+    </script>
+
 </body>
 </html>
